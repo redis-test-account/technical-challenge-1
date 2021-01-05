@@ -1,7 +1,7 @@
 Redis OSS/Enterprise Installation and Configuration Exercise
 ============================================================
 
-# Overview
+This details the steps taken to setup the two redis instances 
 
 # Part 1: Installation
 
@@ -56,17 +56,13 @@ ens4: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1460
       bind 127.0.0.1 192.168.0.32:
       ```
       (Note that 192.168.0.32 should be the ip address you found in the previous step)
-    * Replace ```#aclfile /etc/redis/users.acl```
+    * Replace ```#requirepass foobared```
     with
     ```
-    #aclfile /etc/redis/users.acl
-    aclfile /etc/redis/users.acl
+    #requirepass foobared
+    requirepass <some_master_password>
     ```
-
-    ```
-    sudo  vi /etc/redis/users.acl
-    sudo chown redis:redis /etc/redis/users.acl
-    ```
+    where  <some_master_password> is a master password that you set for the redis instance.
 
 6. Restart redis server user default on 
 ```
@@ -74,9 +70,10 @@ sudo /etc/init.d/redis-server restart
 ```
 7. Verify that the server is up and running
 ```
-redis-cli ping
+redis-cli -a <some_master_password> ping
 ```
-Expected to see the following on the output
+where  <some_master_password> the master password that you set previoiusly
+ Expected to see the following on the output
 ```
 PONG
 ```
@@ -164,9 +161,7 @@ tar -xvf redislabs-6.0.8-28-bionic-amd64.tar
     * Note that this just temporarily resolves the google_compute_engine issues seen when running the pything scripts.
 
 
-# Part 2: Load Data 
-
-## Load data using memtier_benchmark
+# Part 2: Load data using memtier_benchmark
 
 On GCP Instance 1
 
@@ -174,8 +169,10 @@ Adapeted from https://redislabs.com/blog/new-in-memtier_benchmark-pseudo-random-
 
 1. Load the data
 ```
-memtier_benchmark --random-data --data-size-range=4-204 --data-size-pattern=S --key-minimum=200 --key-maximum=400
+memtier_benchmark --random-data --data-size-range=4-204 --data-size-pattern=S --key-minimum=200 --key-maximum=400 --authenticate=<some_master_password>
 ```
+where  <some_master_password> the master password that you set previoiusly
+
 2. Verify the loaded data
     * Run ```redis-cli```
     * Type ```info keyspace```
@@ -184,33 +181,16 @@ Expect output similar to
 # Keyspace
 db0:keys=199,expires=0,avg_ttl=0
 ```
-
-# Part 2: Load Data 
-
-## Setup Redis Enterprise GA Instance
+# Part 3: Setup Redis Enterprise GA Instance
 
 1. Navigate to https://<gcp_instance_2_ip>:8443
 2. Follow steps 2 and 3 at https://docs.redislabs.com/latest/rs/getting-started/ to setup the cluster and database
-3. Edit the configuration of the Database and set the "Replica of" value to 
+3. Edit the configuration of the Database and set the "Default database access" password
+4. Edit the configuration of the Database and set the "Replica of" value to 
 ```
-redis://<gcp_instance_1_ip>:6379
+redis://:<some_master_password>@<gcp_instance_1_ip>:6379
 ```
+where  <gcp_instance_1_ip> is the public ip address of the gcp_instance_1 server.
+where  <some_master_password> is a master password that you set for the redis instance on the gcp_instance_1 server.
 
-
-
-user default on >kR5qA5mdDBYrGDaz allcommands allkeys
-
-
- Jedis instance1 = new Jedis("35.188.49.252",6379);
-        instance1.auth("kR5qA5mdDBYrGDaz");
-        instance1.zadd("the100",createScoreMembers());
-
-        Jedis instance2 = new Jedis("34.123.111.8",17401);
-        instance2.auth("L337P422w0rD");
-        Set<String> values = instance1.zrange("the100",0,-1);
-        Set<String> reverseValues = instance2.zrevrange("the100",0,-1);
-
-        System.out.println(reverseValues);
-
-        instance1.close();
-        instance2.close();
+You should expect that this database is now synched to the database on gcp_instance_1_ip.
