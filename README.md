@@ -64,7 +64,7 @@ ens4: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1460
     ```
     where  <some_master_password> is a master password that you set for the redis instance.
 
-6. Restart redis server user default on 
+6. Restart redis server 
 ```
 sudo /etc/init.d/redis-server restart
 ```
@@ -72,8 +72,9 @@ sudo /etc/init.d/redis-server restart
 ```
 redis-cli -a <some_master_password> ping
 ```
-where  <some_master_password> the master password that you set previoiusly
- Expected to see the following on the output
+where  <some_master_password> the master password that you set previoiusly.
+
+Expect to see the following on the output
 ```
 PONG
 ```
