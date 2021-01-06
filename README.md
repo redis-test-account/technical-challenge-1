@@ -125,7 +125,7 @@ Download and install Redis Enterprise GA version on GCP Instance 2 using the no 
 Steps modified from https://docs.redislabs.com/latest/rs/getting-started/ 
 
 
-1. Create the rlec direction
+1. Create the rlec directory
 ```
 mkdir ~/rlec
 ```
